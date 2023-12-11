@@ -44,10 +44,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            // Estrai il token dall'header della richiesta
             Authentication authentication = extractCredentials(request);
-
-            // Verifica e imposta l'autenticazione nel contesto di sicurezza
             if (authentication != null) {
                 Authentication result = authenticationManager.authenticate(authentication);
                 SecurityContextHolder.getContext().setAuthentication(result);
@@ -55,7 +52,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
-            e.printStackTrace();
             return;
         }
 
@@ -67,7 +63,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring("Bearer ".length()).trim();
             if (validateToken(token)) {
-                // Usa la chiave segreta generata in modo sicuro
                 Claims claims = Jwts.parser().setSigningKey(getSecretKey()).parseClaimsJws(token).getBody();
                 String username = claims.getSubject();
                 return new UsernamePasswordAuthenticationToken(new User(username, "", Collections.emptyList()), null, Collections.emptyList());
@@ -75,8 +70,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-    
-    
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(getSecretKey()).parseClaimsJws(token);
@@ -90,6 +84,4 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         // Utilizza la classe Keys per generare una chiave segreta sicura
         return Keys.secretKeyFor(SignatureAlgorithm.HS256);
     }
-
-    
 }

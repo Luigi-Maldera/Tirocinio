@@ -36,15 +36,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
-    public SecurityConfig(CustomAuthenticationProvider customAuthenticationProvider) {
-        this.authenticationProvider = customAuthenticationProvider;
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authenticationProvider);
-    }
 
     @Bean
     @Override
@@ -52,7 +43,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    
     @Bean
     public TokenAuthenticationFilter tokenAuthenticationFilter() throws Exception {
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter(authenticationManagerBean(), personaRepository);
@@ -72,11 +62,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .exceptionHandling().accessDeniedHandler((request, response, accessDeniedException) -> {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 response.getWriter().write("Access Denied! " + accessDeniedException.getMessage());
-
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                if (authentication != null) {
-                    System.out.println("User authorities: " + authentication.getAuthorities());
-                }
             });
     }
 

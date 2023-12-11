@@ -37,20 +37,15 @@ public class AuthenticationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-
     public String authenticate(LoginRequest request) {
         String username = request.getUsername();
         String password = request.getPassword();
 
-        // Verifica se le credenziali sono corrette
         Persona persona = personaRepository.findByUsername(username);
 
-        //if (persona != null && passwordEncoder.matches(password, persona.getPassword())) {
-        if (persona != null && password.equals(persona.getPassword())) {
-            // Autenticazione riuscita, puoi generare il token o restituire un token pre-generato
+        if (persona != null && passwordEncoder.matches(password, persona.getPassword())) {
             return generateToken(persona);
         } else {
-            // Restituisci null o una stringa vuota in caso di autenticazione fallita
             return null;
         }
     }
@@ -61,7 +56,4 @@ public class AuthenticationService {
                 .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256))
                 .compact();
     }
-
-
-
 }

@@ -33,10 +33,10 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
 
-        // Costruisci e restituisci un oggetto UserDetails basato sulle informazioni dell'utente
         return User.builder()
                 .username(persona.getUsername())
                 .password(persona.getPassword())
+                .roles("USER")  // Aggiungi eventuali ruoli
                 .build();
     }
 }
