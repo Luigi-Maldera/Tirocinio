@@ -14,15 +14,24 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         // Recupera il token dalle credenziali dell'autenticazione
         Object credentials = authentication.getCredentials();
 
-        // Verifica del token:
-        if (credentials != null && isValidToken(credentials.toString())) {
+        // Verifica se il token non è null prima di procedere
+        if (credentials == null || credentials.toString().isEmpty()) {
+            throw new CustomAuthenticationException("Token is null or empty");
+        }
+
+        // Puoi effettuare ulteriori controlli personalizzati qui
+        // Ad esempio, verifica se il token è valido
+
+        // Esempio di verifica del token (questo è solo un esempio, personalizzalo secondo le tue esigenze):
+        if (isValidToken(credentials.toString())) {
             // Crea un oggetto di autenticazione con le autorizzazioni appropriate
             return new UsernamePasswordAuthenticationToken(null, credentials, null);
         } else {
             // Token non valido, lancia un'eccezione AuthenticationException
-        	throw new CustomAuthenticationException("Invalid token: " + credentials);
+            throw new CustomAuthenticationException("Invalid token: " + credentials.toString());
         }
     }
+    
 
     @Override
     public boolean supports(Class<?> authentication) {
@@ -31,7 +40,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     }
 
     private boolean isValidToken(String token) {
-        // Verifica solo se il token non è vuoto
-        return token != null && !token.isEmpty();
+        return token != null && !token.trim().isEmpty();
     }
+
 }

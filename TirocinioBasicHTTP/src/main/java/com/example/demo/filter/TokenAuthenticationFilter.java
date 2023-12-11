@@ -54,14 +54,22 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private Authentication extractCredentials(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Basic ")) {
-            String token = header.substring("Basic ".length()).trim();
+        if (header != null) {
+            String token;
+            if (header.startsWith("Basic ")) {
+                token = header.substring("Basic ".length()).trim();
+            } else {
+                token = header.trim();
+            }
             if (validateToken(token)) {
-                return new UsernamePasswordAuthenticationToken(null, null);
+                // Estrai le informazioni dal token e restituisci un UsernamePasswordAuthenticationToken valido
+                return new UsernamePasswordAuthenticationToken(null, token, null);
             }
         }
         return null;
     }
+
+
 
     public boolean validateToken(String token) {
         try {
