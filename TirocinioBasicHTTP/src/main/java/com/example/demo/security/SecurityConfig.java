@@ -36,6 +36,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    
+    public SecurityConfig(CustomAuthenticationProvider customAuthenticationProvider) {
+        this.authenticationProvider = customAuthenticationProvider;
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authenticationProvider);
+    }
 
     @Bean
     @Override
@@ -43,6 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
+    
     @Bean
     public TokenAuthenticationFilter tokenAuthenticationFilter() throws Exception {
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter(authenticationManagerBean(), personaRepository);
@@ -54,22 +64,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
             .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .authorizeRequests()
-                .antMatchers("/api/somma").authenticated()
+                .antMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
+            .and()
+            .httpBasic()
             .and()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
-            .exceptionHandling()
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write(authException.getMessage());
-                })
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.getWriter().write("Access Denied! " + accessDeniedException.getMessage());
-                });
-    }
+            .exceptionHandling().accessDeniedHandler((request, response, accessDeniedException) -> {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter().write("Access Denied! " + accessDeniedException.getMessage());
 
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication != null) {
+                    System.out.println("User authorities: " + authentication.getAuthorities());
+                }
+            });
+    }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {

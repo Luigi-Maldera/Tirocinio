@@ -10,7 +10,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
@@ -20,6 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.demo.model.Persona;
 import com.example.demo.repositories.PersonaRepository;
+import com.example.demo.security.CustomAuthenticationException;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -49,11 +50,18 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 Authentication result = authenticationManager.authenticate(authentication);
                 SecurityContextHolder.getContext().setAuthentication(result);
             }
+        } catch (CustomAuthenticationException e) {
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+            e.printStackTrace(); // Aggiungi questa riga per stampare dettagli aggiuntivi sulla console
+            return;
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
+            e.printStackTrace(); // Aggiungi questa riga per stampare dettagli aggiuntivi sulla console
             return;
         }
+
 
         filterChain.doFilter(request, response);
     }
@@ -62,10 +70,14 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring("Bearer ".length()).trim();
+            logDebugInfo(request, token);
+
             if (validateToken(token)) {
+                // Usa la chiave segreta generata in modo sicuro
                 Claims claims = Jwts.parser().setSigningKey(getSecretKey()).parseClaimsJws(token).getBody();
                 String username = claims.getSubject();
-                return new UsernamePasswordAuthenticationToken(new User(username, "", Collections.emptyList()), null, Collections.emptyList());
+                return new UsernamePasswordAuthenticationToken(
+                        new User(username, "", Collections.emptyList()), null, Collections.emptyList());
             }
         }
         return null;
@@ -75,13 +87,31 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         try {
             Jwts.parser().setSigningKey(getSecretKey()).parseClaimsJws(token);
             return true;
+        } catch (SignatureException e) {
+            // Logga ulteriori dettagli sull'eccezione
+            e.printStackTrace();
+            System.out.println("Dettagli sull'eccezione: " + e.getMessage());
+            throw new CustomAuthenticationException("Errore nella validazione del token", e);
         } catch (Exception e) {
+            // Logga ulteriori dettagli sull'eccezione
+            e.printStackTrace();
+            System.out.println("Dettagli sull'eccezione: " + e.getMessage());
             return false;
         }
     }
 
-    private Key getSecretKey() {
-        // Utilizza la classe Keys per generare una chiave segreta sicura
-        return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+    
+    private void logDebugInfo(HttpServletRequest request, String token) {
+        System.out.println("Request URI: " + request.getRequestURI());
+        System.out.println("Token: " + token);
     }
+
+    private Key getSecretKey() {
+        // Utilizza la chiave segreta definita nelle proprietà dell'applicazione
+        String secretKeyString = "8a8e64f242f6b65e75fb7f2a764db2cf";
+        byte[] secretKeyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(secretKeyBytes);
+    }
+
 }

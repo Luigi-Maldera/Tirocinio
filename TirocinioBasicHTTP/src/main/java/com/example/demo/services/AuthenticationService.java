@@ -1,13 +1,8 @@
 package com.example.demo.services;
 
 import java.util.UUID;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,27 +33,39 @@ public class AuthenticationService {
         this.passwordEncoder = passwordEncoder;
     }
 
+
     public String authenticate(LoginRequest request) {
         String username = request.getUsername();
         String password = request.getPassword();
 
+        // Verifica se le credenziali sono corrette
         Persona persona = personaRepository.findByUsername(username);
 
+        //if (persona != null && passwordEncoder.matches(password, persona.getPassword())) {
         if (persona != null && password.equals(persona.getPassword())) {
+            // Autenticazione riuscita, puoi generare il token o restituire un token pre-generato
             return generateToken(persona);
         } else {
+            // Restituisci null o una stringa vuota in caso di autenticazione fallita
             return null;
         }
     }
 
     private String generateToken(Persona persona) {
-        String secretKeyString = "8a8e64f242f6b65e75fb7f2a764db2cf";  // Leggi la chiave segreta dalle proprietà dell'applicazione
-        byte[] secretKeyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
+        // Genera un token di base64 rappresentante le credenziali utente
+        String credentials = persona.getUsername() + ":" + persona.getPassword();
+        String newToken = Base64Utils.encodeToString(credentials.getBytes());
 
-        return Jwts.builder()
-                .setSubject(persona.getUsername())
-                .signWith(Keys.hmacShaKeyFor(secretKeyBytes), SignatureAlgorithm.HS256)
-                .compact();
+        // Assegna il nuovo token alla persona
+        persona.setToken(newToken);
+
+        // Aggiorna il token nel database (salva la persona)
+        personaRepository.save(persona);
+
+        // Restituisci il token appena generato
+        return newToken;
     }
+
+
 
 }
