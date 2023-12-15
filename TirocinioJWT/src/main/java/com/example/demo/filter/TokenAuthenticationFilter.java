@@ -5,7 +5,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.codec.Base64;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -53,27 +52,31 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         } catch (CustomAuthenticationException e) {
             SecurityContextHolder.clearContext();
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
-            e.printStackTrace(); // Aggiungi questa riga per stampare dettagli aggiuntivi sulla console
+            e.printStackTrace();
+            System.out.println("Dettagli sull'eccezione: " + e.getMessage());
             return;
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
-            e.printStackTrace(); // Aggiungi questa riga per stampare dettagli aggiuntivi sulla console
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token non valido o scaduto");
+            e.printStackTrace();
+            System.out.println("Dettagli sull'eccezione: " + e.getMessage());
             return;
         }
-
-
         filterChain.doFilter(request, response);
     }
 
     private Authentication extractCredentials(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring("Bearer ".length()).trim();
+        if (header != null) {
+            String token;
+            if (header.startsWith("Bearer ")) {
+                token = header.substring("Bearer ".length()).trim();
+            } else {
+                token = header.trim();
+            }
             logDebugInfo(request, token);
-
             if (validateToken(token)) {
-                // Usa la chiave segreta generata in modo sicuro
+                // Use the secret key generated securely
                 Claims claims = Jwts.parser().setSigningKey(getSecretKey()).parseClaimsJws(token).getBody();
                 String username = claims.getSubject();
                 return new UsernamePasswordAuthenticationToken(
@@ -83,22 +86,23 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
+   
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(getSecretKey()).parseClaimsJws(token);
             return true;
         } catch (SignatureException e) {
-            // Logga ulteriori dettagli sull'eccezione
+            e.printStackTrace();
+            System.out.println("Dettagli sull'eccezione: " + e.getMessage());
+            throw new CustomAuthenticationException("Firma del token non valida", e);
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Dettagli sull'eccezione: " + e.getMessage());
             throw new CustomAuthenticationException("Errore nella validazione del token", e);
-        } catch (Exception e) {
-            // Logga ulteriori dettagli sull'eccezione
-            e.printStackTrace();
-            System.out.println("Dettagli sull'eccezione: " + e.getMessage());
-            return false;
         }
     }
+
 
 
     

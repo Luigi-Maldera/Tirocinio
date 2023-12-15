@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.model.Persona;
 import com.example.demo.repositories.PersonaRepository;
+import com.example.demo.security.CustomAuthenticationException;
 import com.example.demo.security.SecurityConfig;
 
 @Service
@@ -52,13 +53,26 @@ public class AuthenticationService {
     }
 
     private String generateToken(Persona persona) {
-        String secretKeyString = "8a8e64f242f6b65e75fb7f2a764db2cf";  // Leggi la chiave segreta dalle proprietà dell'applicazione
-        byte[] secretKeyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
+        try {
+            String secretKeyString = "8a8e64f242f6b65e75fb7f2a764db2cf";
+            byte[] secretKeyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
 
-        return Jwts.builder()
-                .setSubject(persona.getUsername())
-                .signWith(Keys.hmacShaKeyFor(secretKeyBytes), SignatureAlgorithm.HS256)
-                .compact();
+            String token = Jwts.builder()
+                    .setSubject(persona.getUsername())
+                    .signWith(Keys.hmacShaKeyFor(secretKeyBytes), SignatureAlgorithm.HS256)
+                    .compact();
+
+            // Salva il token nel campo token della Persona
+            persona.setToken(token);
+            personaRepository.save(persona);
+
+            return token;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Dettagli sull'eccezione: " + e.getMessage());
+            throw new CustomAuthenticationException("Errore nella generazione del token", e);
+        }
     }
+
 
 }
