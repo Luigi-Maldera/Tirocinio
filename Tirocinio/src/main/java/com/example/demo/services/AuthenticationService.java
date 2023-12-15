@@ -1,38 +1,42 @@
 package com.example.demo.services;
 
-import com.example.demo.dto.LoginRequest;
 import com.example.demo.model.Persona;
 import com.example.demo.repositories.PersonaRepository;
-import com.example.demo.testJWTSecurity.JwtTokenUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
 public class AuthenticationService {
 
     private final PersonaRepository personaRepository;
-    private final JwtTokenUtil jwtTokenUtil;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthenticationService(PersonaRepository personaRepository, JwtTokenUtil jwtTokenUtil) {
+    public AuthenticationService(PersonaRepository personaRepository, PasswordEncoder passwordEncoder) {
         this.personaRepository = personaRepository;
-        this.jwtTokenUtil = jwtTokenUtil;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public String authenticate(LoginRequest request) {
-        Persona persona = personaRepository.findByUsernameAndPassword(request.getUsername(), request.getPassword());
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        String username = authentication.getName();
+        String password = authentication.getCredentials().toString();
 
-        if (persona != null) {
-            // Autenticazione riuscita, genera il token
-            return jwtTokenUtil.generateToken(new org.springframework.security.core.userdetails.User(
-                    persona.getUsername(),
-                    persona.getPassword(),
-                    null  // Puoi popolare le autorizzazioni se necessario
-            ));
-        } else {
-            // Restituisci null o una stringa vuota in caso di autenticazione fallita
-            return null;
+        Persona user = personaRepository.findByUsername(username);
+
+        if (user == null || !password.equals(user.getPassword())) {
+            throw new BadCredentialsException("Invalid username or password");
         }
+
+        return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+    }
+
+    public Persona loadUserByUsername(String username) throws UsernameNotFoundException {
+        return personaRepository.findByUsername(username);
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.model.Persona;
 import com.example.demo.repositories.PersonaRepository;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -17,9 +19,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Persona user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("Utente non trovato con username: " + username);
-        }
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), null);
+        List<String> roles = new ArrayList<>();
+        roles.add("USER");
+        UserDetails userDetails =
+                org.springframework.security.core.userdetails.User.builder()
+                        .username(user.getUsername())
+                        .password(user.getPassword())
+                        .roles(roles.toArray(new String[0]))
+                        .build();
+        return userDetails;
     }
 }

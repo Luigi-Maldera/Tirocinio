@@ -1,12 +1,17 @@
 package com.example.demo.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import java.util.Collection;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
-public class Persona {
+public class Persona implements UserDetails {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -92,5 +97,32 @@ public String getToken() {
 
 public void setToken(String token) {
 	this.token = token;
+}
+
+@Override
+public Collection<? extends GrantedAuthority> getAuthorities() {
+    // Definire qui eventuali ruoli dell'utente
+    return null;
+}
+
+
+@Override
+public boolean isAccountNonExpired() {
+    return true;
+}
+
+@Override
+public boolean isAccountNonLocked() {
+    return true;
+}
+
+@Override
+public boolean isCredentialsNonExpired() {
+    return true;
+}
+
+@Override
+public boolean isEnabled() {
+    return true;
 }
 }

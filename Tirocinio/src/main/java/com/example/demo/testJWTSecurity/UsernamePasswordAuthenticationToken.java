@@ -39,6 +39,5 @@ public class UsernamePasswordAuthenticationToken extends AbstractAuthenticationT
         return this.principal;
     }
 
-    // Altro
 }
 

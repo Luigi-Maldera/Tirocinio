@@ -26,47 +26,32 @@ public class CalcolatriceController {
     private PersonaRepository personaRepository;
 
 	@PostMapping("/somma")
-    public ResponseEntity<Integer> somma(@RequestBody Map<String, Integer> requestBody, @RequestHeader("token") String token) {
-        if (verificaToken(token)) {
+    public ResponseEntity<Integer> somma(@RequestBody Map<String, Integer> requestBody) {
             int risultato = calcolatriceService.somma(requestBody.get("parametro1"), requestBody.get("parametro2"));
             return ResponseEntity.ok(risultato);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
-    }
+    
 
     @PostMapping("/differenza")
-    public ResponseEntity<Integer> differenza(@RequestBody Map<String, Integer> requestBody, @RequestHeader("token") String token) {
-        if (verificaToken(token)) {
+    public ResponseEntity<Integer> differenza(@RequestBody Map<String, Integer> requestBody) {
             int risultato = calcolatriceService.differenza(requestBody.get("parametro1"), requestBody.get("parametro2"));
             return ResponseEntity.ok(risultato);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        }
     }
 
     @PostMapping("/moltiplicazione")
-    public ResponseEntity<Integer> moltiplicazione(@RequestBody Map<String, Integer> requestBody, @RequestHeader("token") String token) {
-        if (verificaToken(token)) {
+    public ResponseEntity<Integer> moltiplicazione(@RequestBody Map<String, Integer> requestBody) {
             int risultato = calcolatriceService.moltiplicazione(requestBody.get("parametro1"), requestBody.get("parametro2"));
             return ResponseEntity.ok(risultato);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        }
     }
 
     @PostMapping("/divisione")
-    public ResponseEntity<Integer> divisione(@RequestBody Map<String, Integer> requestBody, @RequestHeader("token") String token) {
-        if (verificaToken(token)) {
+    public ResponseEntity<Integer> divisione(@RequestBody Map<String, Integer> requestBody) {
             try {
                 int risultato = calcolatriceService.divisione(requestBody.get("parametro1"), requestBody.get("parametro2"));
                 return ResponseEntity.ok(risultato);
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest().body(null);
             }
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        }
     }
 
     private boolean verificaToken(String token) {
