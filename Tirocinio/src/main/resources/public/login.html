@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link rel="stylesheet" href="/css/login.css">
     <script src="/jq/jquery-3.7.1.min.js"></script>
     <script src="/js/login.js"></script>
 </head>
 <body>
-    <h1>Login</h1>
+    <center><h1>Login  </h1></center>
     <form id="loginForm">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
@@ -17,6 +18,48 @@
         <input type="password" id="password" name="password" required>
         <br>
         <button type="button" onclick="performLogin()">Login</button>
+        <!-- Aggiungi questo dopo il pulsante di login -->
+		<button type="button" onclick="showRegistrationPopup()">Registrati</button>
     </form>
+<script>
+function showRegistrationPopup() {
+    // Mostra un popup per l'inserimento delle credenziali
+    var nome = prompt("Inserisci il nome:");
+    var cognome = prompt("Inserisci il cognome:");
+    var indirizzo = prompt("Inserisci l'indirizzo:");
+    var username = prompt("Inserisci l'username:");
+    var password = prompt("Inserisci la password:");
+
+    // Crea un oggetto con le credenziali
+    var nuovaPersona = {
+        nome: nome,
+        cognome: cognome,
+        indirizzo: indirizzo,
+        username: username,
+        password: password
+    };
+
+    // Esegui la registrazione chiamando l'API
+    registerNewPerson(nuovaPersona);
+}
+
+function registerNewPerson(persona) {
+    $.ajax({
+        type: "POST",
+        url: "/persona/create",
+        contentType: "application/json",
+        data: JSON.stringify(persona),
+        success: function(response) {
+            // La registrazione è avvenuta con successo
+            alert("Registrazione avvenuta con successo!");
+        },
+        error: function(error) {
+            // Gestisci l'errore durante la registrazione
+            console.error("Errore durante la registrazione:", error.responseJSON.message);
+            alert("Errore durante la registrazione: " + error.responseJSON.message);
+        }
+    });
+}
+</script>
 </body>
 </html>
