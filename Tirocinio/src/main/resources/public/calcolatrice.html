@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatrice</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="calcolatrice">
+    <input type="text" id="display" readonly>
+    <div class="row">
+        <button onclick="aggiungiNumero('7')">7</button>
+        <button onclick="aggiungiNumero('8')">8</button>
+        <button onclick="aggiungiNumero('9')">9</button>
+        <button onclick="eseguiOperazione('divisione')">/</button>
+    </div>
+    <div class="row">
+        <button onclick="aggiungiNumero('4')">4</button>
+        <button onclick="aggiungiNumero('5')">5</button>
+        <button onclick="aggiungiNumero('6')">6</button>
+        <button onclick="eseguiOperazione('moltiplicazione')">*</button>
+    </div>
+    <div class="row">
+        <button onclick="aggiungiNumero('1')">1</button>
+        <button onclick="aggiungiNumero('2')">2</button>
+        <button onclick="aggiungiNumero('3')">3</button>
+        <button onclick="eseguiOperazione('differenza')">-</button>
+    </div>
+    <div class="row">
+        <button onclick="aggiungiNumero('0')">0</button>
+        <button onclick="aggiungiDecimal('.')">.</button>
+        <button onclick="calcolaRisultato()">=</button>
+        <button onclick="eseguiOperazione('somma')">+</button>
+    </div>
+    <div class="row">
+        <button onclick="cancella()">C</button>
+    </div>
+</div>
+
+<script src="/jq/jquery-3.7.1.min.js"></script>
+<script src="/js/calcolatrice.js"></script>
+</body>
+</html>
