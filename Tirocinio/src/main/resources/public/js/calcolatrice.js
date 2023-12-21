@@ -36,7 +36,7 @@ function calcolaRisultato() {
 
     if (operatore === 'divisione' && calcolatriceData.parametro2 === 0) {
         // Caso speciale: divisione per zero, mostra un popup personalizzato
-        alert("Sei un coglione. Non puoi dividere per zero!");
+        alert("Non puoi dividere per zero!");
         return;
     }
 
